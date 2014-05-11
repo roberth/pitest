@@ -15,6 +15,7 @@
 
 package org.pitest.mutationtest.engine.gregor.mutators;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -84,6 +85,34 @@ public class NonVoidMethodCallMutatorTest extends MutatorTestBase {
       throws Exception {
     final Mutant mutant = getFirstMutant(HasObjectMethodCall.class);
     assertMutantCallableReturns(new HasObjectMethodCall(), mutant, null);
+  }
+
+  public static class HasChainingMethodCall implements Callable<HasChainingMethodCall> {
+
+    private int i = 0;
+
+    public HasChainingMethodCall addFoo(int foo) {
+      i = foo;
+      return this;
+    }
+
+    public int getFoo() {
+      return i;
+    }
+
+    public HasChainingMethodCall call() { return addFoo(123); }
+  }
+
+  @Test
+  public void shouldRemoveNonVoidMethodCallReturningChain()
+      throws Exception {
+    final Mutant mutant = getFirstMutant(HasChainingMethodCall.class);
+    HasChainingMethodCall unmutated = new HasChainingMethodCall();
+    Object result = mutateAndCall(unmutated, mutant);
+    Object foo = result.getClass().getMethod("getFoo").invoke(result);
+    assertTrue(((Object)0).equals(foo));
+    unmutated.call();
+    assertTrue(unmutated.getFoo() == 123);
   }
 
   private static class HasBooleanMethodCall implements Callable<String> {

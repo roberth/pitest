@@ -90,16 +90,13 @@ class MethodCallMethodVisitor extends MethodVisitor {
 
   }
 
-	private boolean isChainCall(int opcode, String owner, String name, String desc) {
+	private boolean isChainCall(int opcode, String calledClass, String name, String desc) {
 	  if (isStatic(opcode)) {
 		return false;
 	  } else {
-        Type.getMethodType("desc");
-
-		// TODO
-		System.err.println("isChainCall " + opcode + " owner " + owner + " name " + name + " desc " + desc);
-		return false;
-	  }
+        Type returnType = Type.getReturnType(desc);
+        return returnType.getClassName().equals(calledClass.replace('/', '.'));
+      }
 	}
 
 	private void replaceCallWithDefaultValue(int opcode, String name, String desc) {
