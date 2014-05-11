@@ -14,14 +14,6 @@
  */
 package org.pitest.mutationtest.engine.gregor.mutators;
 
-import static org.objectweb.asm.Opcodes.DCONST_0;
-import static org.objectweb.asm.Opcodes.FCONST_0;
-import static org.objectweb.asm.Opcodes.ICONST_0;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.LCONST_0;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Opcodes.POP2;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +25,14 @@ import org.pitest.mutationtest.engine.MutationIdentifier;
 import org.pitest.mutationtest.engine.gregor.Context;
 import org.pitest.mutationtest.engine.gregor.MethodInfo;
 import org.pitest.mutationtest.engine.gregor.MethodMutatorFactory;
+
+import static org.objectweb.asm.Opcodes.DCONST_0;
+import static org.objectweb.asm.Opcodes.FCONST_0;
+import static org.objectweb.asm.Opcodes.ICONST_0;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.LCONST_0;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.POP2;
 
 class MethodCallMethodVisitor extends MethodVisitor {
 
@@ -78,10 +78,11 @@ class MethodCallMethodVisitor extends MethodVisitor {
 
       if (this.context.shouldMutate(newId)) {
 
-        popStack(desc, name);
-        popThisIfNotStatic(opcode);
-        putReturnValueOnStack(desc, name);
-
+		if (isChainCall(opcode, owner, name, desc)) {
+		  replaceChainCall(name, desc);
+		} else {
+		  replaceCallWithDefaultValue(opcode, name, desc);
+		}
       } else {
         this.mv.visitMethodInsn(opcode, owner, name, desc, itf);
       }
@@ -89,7 +90,29 @@ class MethodCallMethodVisitor extends MethodVisitor {
 
   }
 
-  private boolean isCallToSuperOrOwnConstructor(final String name,
+	private boolean isChainCall(int opcode, String owner, String name, String desc) {
+	  if (isStatic(opcode)) {
+		return false;
+	  } else {
+        Type.getMethodType("desc");
+
+		// TODO
+		System.err.println("isChainCall " + opcode + " owner " + owner + " name " + name + " desc " + desc);
+		return false;
+	  }
+	}
+
+	private void replaceCallWithDefaultValue(int opcode, String name, String desc) {
+	  popStack(desc, name);
+	  popThisIfNotStatic(opcode);
+	  putReturnValueOnStack(desc, name);
+	}
+
+	private void replaceChainCall(String name, String desc) {
+	  popStack(desc, name);
+	}
+
+	private boolean isCallToSuperOrOwnConstructor(final String name,
       final String owner) {
     return this.methodInfo.isConstructor()
         && MethodInfo.isConstructor(name)
